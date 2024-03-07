@@ -2,6 +2,7 @@ import pkg_resources
 import json
 import pandas as pd
 from datetime import *
+import re
 from gensim.parsing.preprocessing import remove_stopwords
 from nltk.stem.snowball import SnowballStemmer
 from nltk.tokenize import word_tokenize
@@ -23,6 +24,8 @@ import webbrowser
 import os
 import time
 import requests
+from urllib.robotparser import RobotFileParser
+import urllib.parse
 
 warnings.filterwarnings("ignore")
 
@@ -66,48 +69,47 @@ class NewsCollector:
             raise Exception(f'Error in "Newsletter.create()"')
 
 class Scraper:
-
     def __init__(self, sources, news_date):
         self.sources = sources
         self.news_date = news_date
 
-    def scrape(self):
-        try:
-            articles_list = []
-            # Example cookies and proxy settings
-            cookies = {
-                'name': 'value',  # Replace with actual cookie name and value
-            }
-            proxies = {
-                'http': 'http://10.10.1.10:3128',  # Replace with your actual HTTP proxy
-                'https': 'https://10.10.1.11:1080',  # Replace with your actual HTTPS proxy
-            }
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
-            }
+    def check_robots_permission(self, url):
+        """Check if the bot is allowed to scrape the given URL based on robots.txt."""
+        parsed_url = urllib.parse.urlparse(url)
+        base_url = f"{parsed_url.scheme}://{parsed_url.netloc}"
+        robots_url = f"{base_url}/robots.txt"
 
+        rp = RobotFileParser()
+        rp.set_url(robots_url)
+        rp.read()
+        # Assuming the user-agent of your bot is 'MyBot'
+        return rp.can_fetch('MyBot', url)
+
+    def scrape(self):
+        articles_list = []
+        articles_dir = 'articles'
+        os.makedirs(articles_dir, exist_ok=True)
+        try:
             for source, content in self.sources.items():
                 for url in content['rss']:
-                    d = fp.parse(url)  # Assuming 'fp' is previously defined
+                    d = fp.parse(url)
                     for entry in d.entries:
                         if hasattr(entry, 'published'):
-                            article_date = dateutil.parser.parse(getattr(entry, 'published'))
-                            if (article_date.strftime('%Y-%m-%d') == str(self.news_date)):
+                            article_date = dateutil.parser.parse(entry.published)
+                            if article_date.strftime('%Y-%m-%d') == str(self.news_date):
+                                # Always check robots.txt permissions and record it
+                                robots_permission = self.check_robots_permission(entry.link)
+                                # Proceed to scrape regardless of robots_permission
                                 try:
-                                    # Use custom headers
                                     headers = {
-                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                                        'User-Agent': 'Mozilla/5.0 ...'  # User-Agent string as before
                                     }
                                     response = requests.get(entry.link, headers=headers)
-
-                                    # Check if the request was successful
                                     if response.status_code == 200:
                                         article = Article(entry.link)
                                         article.set_html(response.text)
                                         article.parse()
                                         article.nlp()
-
-                                        # Structure to hold article details
                                         article_details = {
                                             'source': source,
                                             'url': entry.link,
@@ -117,23 +119,36 @@ class Scraper:
                                             'body': article.text,
                                             'summary': article.summary,
                                             'keywords': article.keywords,
-                                            'image_url': article.top_image
+                                            'image_url': article.top_image,
+                                            'robots_permission': robots_permission  # Record robots.txt permission
                                         }
                                         articles_list.append(article_details)
-                                        Helper.print_scrape_status(len(articles_list))  # Assuming Helper is defined
-                                    else:
-                                        print(f'Request failed with status code: {response.status_code}')
-                                        print('continuing...')
-
-                                    # Introduce delay to mimic human browsing and avoid rate limits
-                                    time.sleep(1)
+                                        # Save each article as a JSON file
+                                        self.save_article_as_json(article_details, articles_dir)
                                 except Exception as e:
                                     print(e)
                                     print('continuing...')
+                                time.sleep(1)  # Be polite and sleep between requests
             return articles_list
         except Exception as e:
             raise Exception(f'Error in "Scraper.scrape()": {e}')
 
+    def save_article_as_json(self, article, directory):
+        # Sanitize the title to remove or replace invalid filename characters
+        sanitized_title = re.sub(r'[\\/*?:"<>|]', '_', article['title'])  # Replace invalid chars with _
+        sanitized_title = re.sub(r'\s+', '_', sanitized_title)  # Replace whitespace with _
+        sanitized_title = sanitized_title[:50]  # Truncate to first 50 characters to avoid overly long filenames
+
+        # Format the date and time for the filename
+        formatted_date = article['date'].replace('-', '') + '_' + article['time'].split(':')[0] + article['time'].split(':')[1]
+
+        # Generate the filename using the sanitized title and formatted date/time
+        filename = f"{sanitized_title}_{formatted_date}.json"
+        filepath = os.path.join(directory, filename)
+
+        # Write the article details to a JSON file
+        with open(filepath, 'w', encoding='utf-8') as file:
+            json.dump(article, file, ensure_ascii=False, indent=4)
 
 class Processer:
 
