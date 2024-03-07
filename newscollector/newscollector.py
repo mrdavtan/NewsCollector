@@ -8,7 +8,9 @@ from nltk.tokenize import word_tokenize
 import string
 import feedparser as fp
 import dateutil
+import dateutil.parser
 import newspaper
+from newspaper import Article
 from unidecode import unidecode
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import AgglomerativeClustering
@@ -19,13 +21,16 @@ import random
 import argparse
 import webbrowser
 import os
+import time
+import requests
+
 warnings.filterwarnings("ignore")
 
 class NewsCollector:
 
     def __init__(self, sources="sources.json", news_name="Daily News Update", news_date=date.today(), template='newsletter.html', output_filename='default', auto_open=False, return_details=False):
         self.sources = Helper.load_sources(sources)
-        self.news_name = news_name  
+        self.news_name = news_name
         self.news_date, self.day_before = Helper.validate_date(news_date)
         self.template, self.template_path = Helper.validate_template(template)
         self.output_filename = Helper.validate_output_filename(output_filename, news_date)
@@ -67,43 +72,68 @@ class Scraper:
         self.news_date = news_date
 
     def scrape(self):
-        # Function that scrapes the content from the URLs in the source data
         try:
             articles_list = []
+            # Example cookies and proxy settings
+            cookies = {
+                'name': 'value',  # Replace with actual cookie name and value
+            }
+            proxies = {
+                'http': 'http://10.10.1.10:3128',  # Replace with your actual HTTP proxy
+                'https': 'https://10.10.1.11:1080',  # Replace with your actual HTTPS proxy
+            }
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+            }
+
             for source, content in self.sources.items():
                 for url in content['rss']:
-                    d = fp.parse(url)
+                    d = fp.parse(url)  # Assuming 'fp' is previously defined
                     for entry in d.entries:
-                        article = {}
-                        if hasattr(entry,'published'):
-                            article_date = dateutil.parser.parse(getattr(entry,'published'))
+                        if hasattr(entry, 'published'):
+                            article_date = dateutil.parser.parse(getattr(entry, 'published'))
                             if (article_date.strftime('%Y-%m-%d') == str(self.news_date)):
                                 try:
-                                    content = newspaper.Article(entry.link)
-                                    content.download()
-                                    content.parse()  
-                                    content.nlp()
-                                    try:
-                                        article['source'] = source
-                                        article['url'] = entry.link
-                                        article['date'] = article_date.strftime('%Y-%m-%d')
-                                        article['time'] = article_date.strftime('%H:%M:%S %Z') # hour, minute, timezone (converted)
-                                        article['title'] = content.title
-                                        article['body'] = content.text
-                                        article['summary'] = content.summary
-                                        article['keywords'] = content.keywords
-                                        article['image_url'] = content.top_image
-                                        articles_list.append(article)
-                                        Helper.print_scrape_status(len(articles_list))
-                                    except Exception as e:
-                                        print(e)
+                                    # Use custom headers
+                                    headers = {
+                                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+                                    }
+                                    response = requests.get(entry.link, headers=headers)
+
+                                    # Check if the request was successful
+                                    if response.status_code == 200:
+                                        article = Article(entry.link)
+                                        article.set_html(response.text)
+                                        article.parse()
+                                        article.nlp()
+
+                                        # Structure to hold article details
+                                        article_details = {
+                                            'source': source,
+                                            'url': entry.link,
+                                            'date': article_date.strftime('%Y-%m-%d'),
+                                            'time': article_date.strftime('%H:%M:%S %Z'),
+                                            'title': article.title,
+                                            'body': article.text,
+                                            'summary': article.summary,
+                                            'keywords': article.keywords,
+                                            'image_url': article.top_image
+                                        }
+                                        articles_list.append(article_details)
+                                        Helper.print_scrape_status(len(articles_list))  # Assuming Helper is defined
+                                    else:
+                                        print(f'Request failed with status code: {response.status_code}')
                                         print('continuing...')
-                                except Exception as e: 
+
+                                    # Introduce delay to mimic human browsing and avoid rate limits
+                                    time.sleep(1)
+                                except Exception as e:
                                     print(e)
                                     print('continuing...')
             return articles_list
-        except:
-            raise Exception(f'Error in "Scraper.scrape()"')
+        except Exception as e:
+            raise Exception(f'Error in "Scraper.scrape()": {e}')
+
 
 class Processer:
 
@@ -143,9 +173,9 @@ class Processer:
                 if len(set([j["source"] for j in clusters[i]])) > 1:
                     featured_clusters[i] = clusters[i]
             for i in range(len(featured_clusters), 6, 1):
-                featured_clusters[f'nan_{i}'] = [{"source":None, 
-                                        "url": None, 
-                                        "date":None, 
+                featured_clusters[f'nan_{i}'] = [{"source":None,
+                                        "url": None,
+                                        "date":None,
                                         "time":None,
                                         "title":"No article found 😥",
                                         "body": "",
@@ -264,7 +294,7 @@ class Helper:
                 print('INFO: Using package default "newsletter.html" as template file.')
                 return template, template_path
         except:
-            raise Exception(f'Error in "Helper.validate_template()"') 
+            raise Exception(f'Error in "Helper.validate_template()"')
 
     def load_sources(file):
         # Function that loads in the sources from the JSON database
@@ -299,7 +329,7 @@ class Helper:
                 return file
         except:
             raise Exception(f'Error in "Helper.validate_output_filename()"')
-        
+
     def validate_return_details(return_details):
         if not isinstance(return_details, bool):
             raise Exception(f'Error in "validate_return_details": parameter "return_details" must be of type "bool".')
@@ -318,7 +348,7 @@ class Helper:
         min, sec = divmod(time_delta.days * 86400 + time_delta.seconds, 60)
         for source in set(df["source"]):
             print(f'{list(df["source"]).count(source)} articles downloaded from {source}\n', end="\r")
-        print(f'{len(df["source"])} total articles downloaded in {min} min {sec} sec\n')        
+        print(f'{len(df["source"])} total articles downloaded in {min} min {sec} sec\n')
 
     def write_dataframe(sources):
         # Function that writes the
@@ -340,7 +370,7 @@ class Helper:
             return df
         except:
             raise Exception(f'Error in "Helper.clean_dataframe()"')
-        
+
     def clean_articles(df):
         # Function that cleans all the bodies of the articles
         try:
@@ -349,7 +379,7 @@ class Helper:
             df = (df.drop_duplicates(subset=["body"])).sort_index()
             df = (df.drop_duplicates(subset=["url"])).sort_index()
             df = df.reset_index(drop=True)
-            
+
             # Make all letters lower case
             df['clean_body'] = df['body'].str.lower()
 
@@ -378,7 +408,7 @@ class Helper:
             return df
         except:
             raise Exception(f'Error in "Helper.clean_articles()"')
-    
+
     def shuffle_content(clusters_dict):
         try:
             for i in list(clusters_dict):
@@ -394,13 +424,13 @@ class Helper:
             similar_articles = {}
             for i in list(clusters_dict):
                 similar_articles[i] = {}
-                if len(clusters_dict[i]) >= 4: 
+                if len(clusters_dict[i]) >= 4:
                     similar_articles[i]['source'] = [f"{clusters_dict[i][1]['source']} ", f"| {clusters_dict[i][2]['source']} ", f"| {clusters_dict[i][3]['source']}"]
                     similar_articles[i]['url'] = [clusters_dict[i][1]['url'], clusters_dict[i][2]['url'], clusters_dict[i][3]['url']]
                 elif len(clusters_dict[i]) == 3:
                     similar_articles[i]['source'] = [f"{clusters_dict[i][1]['source']} ", f"| {clusters_dict[i][2]['source']}", ""]
                     similar_articles[i]['url'] = [clusters_dict[i][1]['url'], clusters_dict[i][2]['url'], ""]
-                elif len(clusters_dict[i]) == 2: 
+                elif len(clusters_dict[i]) == 2:
                     similar_articles[i]['source'] = [clusters_dict[i][1]['source'], "", ""]
                     similar_articles[i]['url'] = [clusters_dict[i][1]['url'], "", ""]
                 else:
@@ -418,8 +448,8 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--news_date", type=str, help='Date of the newsletter.', required=False, default=date.today())
     parser.add_argument("-t", "--template", type=str, help='Filename of the template HTML newsletter file.', required=False, default='newsletter.html')
     parser.add_argument("-o", "--output_filename", type=str, help='Filename of the output HTML newsletter file.', required=False, default='default')
-    parser.add_argument("-r", "--return_details", type=bool, help='Choose whether to return the collected cluster data.', required=False, default=False)   
-    parser.add_argument("-a", "--auto_open", type=bool, help='Choose whether to automatically open the newsletter in the browser.', required=False, default=False)   
+    parser.add_argument("-r", "--return_details", type=bool, help='Choose whether to return the collected cluster data.', required=False, default=False)
+    parser.add_argument("-a", "--auto_open", type=bool, help='Choose whether to automatically open the newsletter in the browser.', required=False, default=False)
     args = parser.parse_args()
 
     sources = args.sources
@@ -432,4 +462,4 @@ if __name__ == "__main__":
 
     newsletter = NewsCollector(sources, news_name, news_date, template, output_filename, return_details, auto_open)
     newsletter.create()
-    
+
