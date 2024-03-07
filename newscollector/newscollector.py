@@ -91,18 +91,17 @@ class Scraper:
         os.makedirs(articles_dir, exist_ok=True)
         try:
             for source, content in self.sources.items():
+                print(f"Processing source: {source}")
                 for url in content['rss']:
                     d = fp.parse(url)
                     for entry in d.entries:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
                             if article_date.strftime('%Y-%m-%d') == str(self.news_date):
-                                # Always check robots.txt permissions and record it
                                 robots_permission = self.check_robots_permission(entry.link)
-                                # Proceed to scrape regardless of robots_permission
                                 try:
                                     headers = {
-                                        'User-Agent': 'Mozilla/5.0 ...'  # User-Agent string as before
+                                        'User-Agent': 'Mozilla/5.0 ...'
                                     }
                                     response = requests.get(entry.link, headers=headers)
                                     if response.status_code == 200:
@@ -115,20 +114,23 @@ class Scraper:
                                             'url': entry.link,
                                             'date': article_date.strftime('%Y-%m-%d'),
                                             'time': article_date.strftime('%H:%M:%S %Z'),
-                                            'title': article.title,
-                                            'body': article.text,
-                                            'summary': article.summary,
-                                            'keywords': article.keywords,
-                                            'image_url': article.top_image,
-                                            'robots_permission': robots_permission  # Record robots.txt permission
+                                            'title': getattr(article, 'title', 'No Title Available'),
+                                            'body': getattr(article, 'text', 'No Content Available'),
+                                            'summary': getattr(article, 'summary', ''),
+                                            'keywords': getattr(article, 'keywords', []),
+                                            'image_url': getattr(article, 'top_image', 'No Image Available'),
+                                            'robots_permission': robots_permission
                                         }
                                         articles_list.append(article_details)
-                                        # Save each article as a JSON file
                                         self.save_article_as_json(article_details, articles_dir)
+                                        print(f"Saved article: {article.title}")
+                                    else:
+                                        print(f'Request failed with status code: {response.status_code}')
+                                        print('continuing...')
+                                    time.sleep(1)
                                 except Exception as e:
                                     print(e)
                                     print('continuing...')
-                                time.sleep(1)  # Be polite and sleep between requests
             return articles_list
         except Exception as e:
             raise Exception(f'Error in "Scraper.scrape()": {e}')
