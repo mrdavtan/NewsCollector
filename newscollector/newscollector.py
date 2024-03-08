@@ -84,6 +84,17 @@ class Scraper:
         rp.read()
         # Assuming the user-agent of your bot is 'MyBot'
         return rp.can_fetch('MyBot', url)
+    def abbreviate_source_name(self, source_name):
+        """Abbreviate the source name to no more than 8 letters, using an acronym or truncation."""
+        # Split the source name into words and take the first letter of each to form an acronym
+        words = source_name.split()
+        if len(words) > 1:
+            acronym = ''.join(word[0] for word in words).upper()
+            # Use the acronym if it's within the limit, otherwise truncate
+            return acronym[:8] if len(acronym) <= 8 else acronym[:8]
+        else:
+            # For a single word, simply truncate to the limit
+            return source_name[:8].upper()
 
     def scrape(self):
         articles_list = []
@@ -128,14 +139,43 @@ class Scraper:
                                         print(f'Request failed with status code: {response.status_code}')
                                         print('continuing...')
                                     time.sleep(1)
+
                                 except Exception as e:
                                     print(e)
+                                    # Save minimal details for failed requests
+                                    failed_article_details = {
+                                        'source': source,
+                                        'url': entry.link,
+                                        'title': getattr(entry, 'title', 'No Title Available'),
+                                        'description': getattr(entry, 'description', 'No Description Available'),
+                                        'date': article_date.strftime('%Y-%m-%d'),
+                                        'time': '00:00:00',
+                                        'status_code': str(e),
+                                        'robots_permission': robots_permission
+                                    }
+                                    articles_list.append(failed_article_details)
+                                    self.save_article_as_json(failed_article_details, articles_dir)
                                     print('continuing...')
+                                time.sleep(1)
             return articles_list
         except Exception as e:
             raise Exception(f'Error in "Scraper.scrape()": {e}')
 
     def save_article_as_json(self, article, directory):
+        # Split the source name into words
+        words = article['source'].split()
+
+        # Apply the shortening logic based on the number of words
+        if len(words) >= 2:
+            # Use the first 3 letters of the first word and the first 2 letters of the second word, split with an underscore
+            source_name_abbreviation = words[0][:3] + "_" + words[1][:2]
+        else:
+            # If only one word or part of the name, truncate or pad it to 5 characters
+            source_name_abbreviation = words[0][:5]
+
+        # Sanitize the abbreviated source name to remove or replace invalid filename characters
+        source_name_abbreviation = re.sub(r'[\\/*?:"<>|]', '_', source_name_abbreviation)
+
         # Sanitize the title to remove or replace invalid filename characters
         sanitized_title = re.sub(r'[\\/*?:"<>|]', '_', article['title'])  # Replace invalid chars with _
         sanitized_title = re.sub(r'\s+', '_', sanitized_title)  # Replace whitespace with _
@@ -144,13 +184,15 @@ class Scraper:
         # Format the date and time for the filename
         formatted_date = article['date'].replace('-', '') + '_' + article['time'].split(':')[0] + article['time'].split(':')[1]
 
-        # Generate the filename using the sanitized title and formatted date/time
-        filename = f"{sanitized_title}_{formatted_date}.json"
+        # Generate the filename using the abbreviated source name, sanitized title, and formatted date/time
+        filename = f"{source_name_abbreviation}_{sanitized_title}_{formatted_date}.json"
         filepath = os.path.join(directory, filename)
 
         # Write the article details to a JSON file
         with open(filepath, 'w', encoding='utf-8') as file:
             json.dump(article, file, ensure_ascii=False, indent=4)
+
+        print(f"Article saved: {filepath}")
 
 class Processer:
 
