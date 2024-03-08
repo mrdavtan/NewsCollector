@@ -84,6 +84,7 @@ class Scraper:
         rp.read()
         # Assuming the user-agent of your bot is 'MyBot'
         return rp.can_fetch('MyBot', url)
+
     def abbreviate_source_name(self, source_name):
         """Abbreviate the source name to no more than 8 letters, using an acronym or truncation."""
         # Split the source name into words and take the first letter of each to form an acronym
@@ -95,6 +96,21 @@ class Scraper:
         else:
             # For a single word, simply truncate to the limit
             return source_name[:8].upper()
+
+#    def scrape(self):
+#        articles_list = []
+#        articles_dir = 'articles'
+#        os.makedirs(articles_dir, exist_ok=True)
+#        try:
+#            for source, content in self.sources.items():
+#                print(f"Processing source: {source}")
+#                for url in content['rss']:
+#                    d = fp.parse(url)
+#                    for entry in d.entries:
+#                        if hasattr(entry, 'published'):
+#                            article_date = dateutil.parser.parse(entry.published)
+#                            if article_date.strftime('%Y-%m-%d') == str(self.news_date):
+#
 
     def scrape(self):
         articles_list = []
@@ -109,6 +125,19 @@ class Scraper:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
                             if article_date.strftime('%Y-%m-%d') == str(self.news_date):
+                                # Prepare minimal details for early saving
+                                early_article_details = {
+                                    'source': source,
+                                    'url': getattr(entry, 'link', 'No URL Available'),
+                                    'title': getattr(entry, 'title', 'No Title Available'),
+                                    'description': getattr(entry, 'description', 'No Description Available'),
+                                    'date': article_date.strftime('%Y-%m-%d'),
+                                    'time': '00:00:00'  # Placeholder time, as actual time might not be available yet
+                                }
+                                # Save the minimal article details immediately
+                                self.save_article_as_json(early_article_details, articles_dir)
+                                print(f"Pre-saved article details for {early_article_details['title']}")
+
                                 robots_permission = self.check_robots_permission(entry.link)
                                 try:
                                     headers = {
@@ -521,4 +550,5 @@ if __name__ == "__main__":
 
     newsletter = NewsCollector(sources, news_name, news_date, template, output_filename, return_details, auto_open)
     newsletter.create()
+
 
