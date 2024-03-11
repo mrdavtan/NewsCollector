@@ -26,6 +26,7 @@ import time
 import requests
 from urllib.robotparser import RobotFileParser
 import urllib.parse
+import uuid
 
 warnings.filterwarnings("ignore")
 
@@ -72,6 +73,8 @@ class Scraper:
     def __init__(self, sources, news_date):
         self.sources = sources
         self.news_date = news_date
+        self.articles_dir = 'articles'
+        self.url_to_uuid = {}
 
     def check_robots_permission(self, url):
         """Check if the bot is allowed to scrape the given URL based on robots.txt."""
@@ -85,6 +88,15 @@ class Scraper:
         # Assuming the user-agent of your bot is 'MyBot'
         return rp.can_fetch('MyBot', url)
 
+    def generate_uuid_for_article(self, article_url):
+        """
+        Generate or retrieve a UUID for the article URL.
+        """
+        if article_url not in self.url_to_uuid:
+            # Assign a new UUID for new articles
+            self.url_to_uuid[article_url] = uuid.uuid4().hex
+        return self.url_to_uuid[article_url]
+
     def abbreviate_source_name(self, source_name):
         """Abbreviate the source name to no more than 8 letters, using an acronym or truncation."""
         # Split the source name into words and take the first letter of each to form an acronym
@@ -97,25 +109,9 @@ class Scraper:
             # For a single word, simply truncate to the limit
             return source_name[:8].upper()
 
-#    def scrape(self):
-#        articles_list = []
-#        articles_dir = 'articles'
-#        os.makedirs(articles_dir, exist_ok=True)
-#        try:
-#            for source, content in self.sources.items():
-#                print(f"Processing source: {source}")
-#                for url in content['rss']:
-#                    d = fp.parse(url)
-#                    for entry in d.entries:
-#                        if hasattr(entry, 'published'):
-#                            article_date = dateutil.parser.parse(entry.published)
-#                            if article_date.strftime('%Y-%m-%d') == str(self.news_date):
-#
-
     def scrape(self):
+        os.makedirs(self.articles_dir, exist_ok=True)
         articles_list = []
-        articles_dir = 'articles'
-        os.makedirs(articles_dir, exist_ok=True)
         try:
             for source, content in self.sources.items():
                 print(f"Processing source: {source}")
@@ -125,24 +121,20 @@ class Scraper:
                         if hasattr(entry, 'published'):
                             article_date = dateutil.parser.parse(entry.published)
                             if article_date.strftime('%Y-%m-%d') == str(self.news_date):
-                                # Prepare minimal details for early saving
                                 early_article_details = {
                                     'source': source,
                                     'url': getattr(entry, 'link', 'No URL Available'),
                                     'title': getattr(entry, 'title', 'No Title Available'),
                                     'description': getattr(entry, 'description', 'No Description Available'),
                                     'date': article_date.strftime('%Y-%m-%d'),
-                                    'time': '00:00:00'  # Placeholder time, as actual time might not be available yet
+                                    'time': '00:00:00'
                                 }
-                                # Save the minimal article details immediately
-                                self.save_article_as_json(early_article_details, articles_dir)
+                                self.save_article_as_json(early_article_details, self.articles_dir)
                                 print(f"Pre-saved article details for {early_article_details['title']}")
 
                                 robots_permission = self.check_robots_permission(entry.link)
                                 try:
-                                    headers = {
-                                        'User-Agent': 'Mozilla/5.0 ...'
-                                    }
+                                    headers = {'User-Agent': 'Mozilla/5.0 ...'}
                                     response = requests.get(entry.link, headers=headers)
                                     if response.status_code == 200:
                                         article = Article(entry.link)
@@ -154,36 +146,20 @@ class Scraper:
                                             'url': entry.link,
                                             'date': article_date.strftime('%Y-%m-%d'),
                                             'time': article_date.strftime('%H:%M:%S %Z'),
-                                            'title': getattr(article, 'title', 'No Title Available'),
-                                            'body': getattr(article, 'text', 'No Content Available'),
-                                            'summary': getattr(article, 'summary', ''),
-                                            'keywords': getattr(article, 'keywords', []),
-                                            'image_url': getattr(article, 'top_image', 'No Image Available'),
+                                            'title': article.title,
+                                            'body': article.text,
+                                            'summary': article.summary,
+                                            'keywords': article.keywords,
+                                            'image_url': article.top_image,
                                             'robots_permission': robots_permission
                                         }
                                         articles_list.append(article_details)
-                                        self.save_article_as_json(article_details, articles_dir)
+                                        self.save_article_as_json(article_details, self.articles_dir)
                                         print(f"Saved article: {article.title}")
                                     else:
-                                        print(f'Request failed with status code: {response.status_code}')
-                                        print('continuing...')
-                                    time.sleep(1)
-
+                                        print(f"Request failed with status code: {response.status_code}")
                                 except Exception as e:
                                     print(e)
-                                    # Save minimal details for failed requests
-                                    failed_article_details = {
-                                        'source': source,
-                                        'url': entry.link,
-                                        'title': getattr(entry, 'title', 'No Title Available'),
-                                        'description': getattr(entry, 'description', 'No Description Available'),
-                                        'date': article_date.strftime('%Y-%m-%d'),
-                                        'time': '00:00:00',
-                                        'status_code': str(e),
-                                        'robots_permission': robots_permission
-                                    }
-                                    articles_list.append(failed_article_details)
-                                    self.save_article_as_json(failed_article_details, articles_dir)
                                     print('continuing...')
                                 time.sleep(1)
             return articles_list
@@ -191,24 +167,22 @@ class Scraper:
             raise Exception(f'Error in "Scraper.scrape()": {e}')
 
     def save_article_as_json(self, article, directory):
-        # Split the source name into words
-        words = article['source'].split()
+        # Ensure the article has a unique identifier ('id') as its first property
+        article_id = self.generate_uuid_for_article(article['url'])
+        article_with_id = {'id': article_id}
+        article_with_id.update(article)
 
-        # Apply the shortening logic based on the number of words
+        # Apply the shortening logic to the source name
+        words = article['source'].split()
         if len(words) >= 2:
-            # Use the first 3 letters of the first word and the first 2 letters of the second word, split with an underscore
             source_name_abbreviation = words[0][:3] + "_" + words[1][:2]
         else:
-            # If only one word or part of the name, truncate or pad it to 5 characters
             source_name_abbreviation = words[0][:5]
-
-        # Sanitize the abbreviated source name to remove or replace invalid filename characters
         source_name_abbreviation = re.sub(r'[\\/*?:"<>|]', '_', source_name_abbreviation)
 
-        # Sanitize the title to remove or replace invalid filename characters
-        sanitized_title = re.sub(r'[\\/*?:"<>|]', '_', article['title'])  # Replace invalid chars with _
-        sanitized_title = re.sub(r'\s+', '_', sanitized_title)  # Replace whitespace with _
-        sanitized_title = sanitized_title[:50]  # Truncate to first 50 characters to avoid overly long filenames
+        # Sanitize the title
+        sanitized_title = re.sub(r'[\\/*?:"<>|]', '_', article['title'])
+        sanitized_title = re.sub(r'\s+', '_', sanitized_title)[:50]
 
         # Format the date and time for the filename
         formatted_date = article['date'].replace('-', '') + '_' + article['time'].split(':')[0] + article['time'].split(':')[1]
@@ -217,9 +191,9 @@ class Scraper:
         filename = f"{source_name_abbreviation}_{sanitized_title}_{formatted_date}.json"
         filepath = os.path.join(directory, filename)
 
-        # Write the article details to a JSON file
+        # Write the article details, including 'id', to a JSON file
         with open(filepath, 'w', encoding='utf-8') as file:
-            json.dump(article, file, ensure_ascii=False, indent=4)
+            json.dump(article_with_id, file, ensure_ascii=False, indent=4)
 
         print(f"Article saved: {filepath}")
 
@@ -530,7 +504,7 @@ class Helper:
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(description='Automated News Article Collection with Python - https://github.com/elisemercury/Duplicate-Image-Finder')
+    parser = argparse.ArgumentParser(description='Automated News Article Collection with Python - https://github.com/elisemercury/Duplicate-Image-Finder')
     parser.add_argument("-s", "--sources", type=str, help='Path of source JSON file with news sources to be scraped.', required=False, default="sources.json")
     parser.add_argument("-n", "--news_name", type=str, help='Title name of the newsletter.', required=False, default='Daily News Update')
     parser.add_argument("-d", "--news_date", type=str, help='Date of the newsletter.', required=False, default=date.today())
