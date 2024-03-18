@@ -9,7 +9,6 @@ fi
 source .venv/bin/activate
 echo "Virtual environment activated: $VIRTUAL_ENV"
 
-
 python3 -c "import os; os.chdir('./newscollector/articles')"
 echo "Moved to the 'articles' directory."
 
@@ -56,14 +55,14 @@ if ls *.json >/dev/null 2>&1; then
     python3 archive.py
     echo "archive.py executed."
 
-    read -p "Continue to navigate back to the 'newscollector' directory? (y/n): " choice
+    read -p "Continue to navigate back to the parent directory? (y/n): " choice
     if [ "$choice" != "y" ]; then
       echo "Script execution stopped."
       exit 1
     fi
 
-    python3 -c "import os; os.chdir('..')"
-    echo "Moved back to the 'newscollector' directory."
+    python3 -c "import os; os.chdir(os.path.dirname(os.getcwd()))"
+    echo "Moved back to the parent directory."
 
     read -p "Continue to run the 'newscollector.py' script? (y/n): " choice
     if [ "$choice" != "y" ]; then
@@ -71,29 +70,20 @@ if ls *.json >/dev/null 2>&1; then
       exit 1
     fi
 
-    python3 newscollector.py
+    python3 -c "import os; os.chdir(os.path.join(os.path.dirname(os.getcwd()), 'newscollector', 'newscollector')); os.system('python3 newscollector.py')"
     echo "newscollector.py script executed."
   fi
 else
   echo "No JSON files found in the 'articles' directory."
   echo "Skipping duplicate removal and archiving steps."
 
-  read -p "Continue to navigate back to the 'newscollector' directory? (y/n): " choice
+  read -p "Continue to navigate back to run newscollector.py? (y/n): " choice
   if [ "$choice" != "y" ]; then
     echo "Script execution stopped."
     exit 1
   fi
 
-  python3 -c "import os; os.chdir('..')"
-  echo "Moved back to the 'newscollector' directory."
-
-  read -p "Continue to run the 'newscollector.py' script? (y/n): " choice
-  if [ "$choice" != "y" ]; then
-    echo "Script execution stopped."
-    exit 1
-  fi
-
-  python3 newscollector.py
+  python3 -c "import os; os.chdir(os.path.join(os.path.dirname(os.getcwd()), 'newscollector', 'newscollector')); os.system('python3 newscollector.py')"
   echo "newscollector.py script executed."
 fi
 

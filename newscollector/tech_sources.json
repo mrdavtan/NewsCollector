@@ -1,0 +1,65 @@
+{
+  "TechCrunch": {
+    "rss": ["https://rss.app/feeds/tENMeQJanXtbVKgq.xml"]
+  },
+  "TheVerge": {
+    "rss": ["https://rss.app/feeds/tr5hpXSURROzMSve.xml"]
+  },
+  "Wired": {
+    "rss": ["https://rss.app/feeds/tdMQESipFNRj1mYa.xml"]
+  },
+  "ArsTechnica": {
+    "rss": ["https://rss.app/feeds/tABINQTfZUBBknRc.xml"]
+  },
+  "Engadget": {
+    "rss": [""]
+  },
+  "Robot News": {
+    "rss": ["https://rss.app/feeds/tWmHHz7wu2GjdWCZ.xml"]
+  },
+  "Venturebeat": {
+    "rss": ["https://rss.app/feeds/t4KWuT13b7qIC7DK.xml"]
+  },
+  "MITTechReview": {
+    "rss": ["https://rss.app/feeds/tGp2CJvgjqAm2RXu.xml"]
+  },
+  "ForbesTech": {
+    "rss": ["https://rss.app/feeds/tZ25GCfCqWaXpgNw.xml"]
+  },
+  "AINewsFeed": {
+    "rss": ["https://rss.app/feeds/tUrbiS5GhQbEc7eW.xml"]
+  },
+  "Geekwire": {
+    "rss": ["https://rss.app/feeds/tzk6n7k9kE3JLTCY.xml"]
+  },
+  "SciTechDaily": {
+    "rss": ["https://rss.app/feeds/tvCuPwi7urXWprQS.xml"]
+  },
+  "ReutersTechnology": {
+    "rss": ["https://rss.app/feeds/tJszXfGPNJvc2QKq.xml"]
+  },
+  "HackerNews": {
+    "rss": ["https://rss.app/feeds/tiobV8TGEFR4SRaL.xml"]
+  },
+  "BBCTech": {
+    "rss": ["https://rss.app/feeds/ttTGZINHuOb96ffL.xml"]
+  },
+  "Gadgets360": {
+    "rss": ["https://rss.app/feeds/twrfd0Io1dnl8aGP.xml"]
+  },
+  "Science": {
+    "rss": ["https://rss.app/feeds/tAId43Zjt7J9d9wr.xml"]
+  },
+  "MediumAI": {
+    "rss": ["https://rss.app/feeds/tUnuzSJXLu8qKttQ.xml"]
+  },
+  "AIAGI": {
+    "rss": ["https://rss.app/feeds/tOerG77scg1Vxc2w.xml"]
+  },
+  "Gizmodo": {
+    "rss": ["https://rss.app/feeds/tUgXcqFrXYCisrX6.xml"]
+  },
+  "ML": {
+    "rss": ["https://rss.app/feeds/t8KBbTmtz6UH2fiY.xml"]
+  }
+}
