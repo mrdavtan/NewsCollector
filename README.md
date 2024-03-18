@@ -1,105 +1,61 @@
-# :newspaper: Python NewsCollector
+# NewsCollector Retriever
 
-![PyPIv](https://img.shields.io/pypi/v/py-newscollector)
-![PyPI status](https://img.shields.io/pypi/status/py-newscollector)
-![PyPI - Python Version](https://img.shields.io/pypi/pyversions/py-newscollector)
-![PyPI - License](https://img.shields.io/pypi/l/py-AutoClean)
+This project is an adaptation of the **NewsCollector** package by elisemercury. It has been modified to run as a cron job on a daily basis to collect news articles and save them as JSON files. The collected data is intended to be used by other programs for automating the creation of datasets and running graph visualizations.
 
-As the internet has grown, the available **sources of information at our disposal have equally grown**. Nowadays, if you want to update yourself with the most important news of the day, you have a **vast variety of news sources** to choose from. Since we have that many news sources at our disposal, instead of manually going through all their content...
+## Features
 
-**Couldn't we let **automation** pick the top news stories from various newspapers for us, and nicely combine them into a newsletter?**
+- Collects news articles from various sources
+- Saves articles as JSON files
+- Runs as a daily cron job
+- Cleans the articles folder of duplicates and remaining articles before each run
 
-**:fire: This is what the Python NewsCollector can do for us!**
+## Installation
 
-```Python
-pip install py-newscollector
-```
+1. **Clone the repository:**
 
-> :bulb: For a **detailed usage guide**, please refer to the official [NewsCollector Usage Documentation](https://github.com/elisemercury/News-Collector/wiki/NewsCollector-Usage-Documentation).
+   ```bash
+   git clone https://github.com/yourusername/NewsCollectorRetriever.git
+   ```
 
-> :closed_book: Read more about how the algorithm of NewsCollector works in [my Medium article](https://medium.com/@eliselandman/automated-news-article-collection-with-python-9267968c9ea).
+2. Install the required dependencies:
 
--------
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Description
+## USage
 
-The Python NewsCollector lets you define a variety of news sources from which it will pick the **most relevant articles** and bundle these in a **nice HTML-based newsletter**. Below is an example of an auto-generated newsletter by NewsCollector on 23 January 2023:
+To run the newcollector with automation, use the provided 'run.sh' script for convenience.
 
-<p align="center"> 
-  <img src="misc/newsletter_rendered_23Jan.png" width="800" title="Example Output: Rendered Newsletter from Python News Collector">
-</p>
+   ```bash
+   ./run.sh
+   ```
 
-<p align="center">
-View the full sample newsletter in PDF format <a href=https://github.com/elisemercury/NewsCollector/blob/main/sample_newsletter.pdf>here.</a>
-</p>
+By default, the script will prompt for confirmation before running. To skip the prompt and run automatically, use the '-y' argument:
 
-The NewsCollector algorithm **scrapes** the source links provided and compares the articles it found based on their **similarity**. If it finds multiple articles from different sources covering similar topics, these will be considered as being **relevant articles** and will be included in the output newsletter.
+./run.sh -y
 
-<p align="center">
-  <img src="misc/collected_news.png" width="350" title="Example Output: Rendered Newsletter from Python News Collector">
-</p>
-
-> :closed_book: Read more about how the algorithm of NewsCollector works in [my Medium article](https://medium.com/@eliselandman/automated-news-article-collection-with-python-9267968c9ea).
-
-## Basic Usage
-
-You can run the NewsCollector algorithm as follows:
-
-```Python
-from newscollector import *
-
-newsletter = NewsCollector()
-output = newsletter.create()
-```
-
-This will run the full NewsCollector pipeline by scraping the sources from the package default `sources.json` file and outputting an HTML newsletter.
-
-The `output` object will hold the location path of the generated newsletter, so that you can easily retrieve it programmatically:
-
-```Python
-output
-> 'C:\\Output\\Path\\newsletter.html'
-```
-
-> :bulb: For a **detailed usage guide**, please refer to the official [NewsCollector Usage Documentation](https://github.com/elisemercury/News-Collector/wiki/NewsCollector-Usage-Documentation).
-
-## CLI Usage
-
-The NewsCollector can also be run directly via the CLI with the following parameters:
-
-```python
-newscollector.py [-h] [-s [SOURCES]] [-n [NEWS_NAME]] [-d [NEWS_DATE]] 
-                 [-t [TEMPLATE]] [-o [OUTPUT_FILENAME]] [-a [AUTO_OPEN]]
-                 [-r [RETURN_DETAILS]]
-```
+The script will first clean the articles folder of duplicates and archive them before running the newscollector.py script.
 
 ## Output
 
-The NewsCollector will output an **HTML newsletter** with the most **relevant articles** it found while scraping the sources provided. 
+The newscollecto.py will output JSON files in a folder named by the date. Each JSON file represents a collected news article or the meta data such as title, source and date from the RSS feed.
 
-<p align="center">
-View the full sample newsletter in PDF format <a href=https://github.com/elisemercury/NewsCollector/blob/main/sample_newsletter.pdf>here.</a>
-</p>
+## Acknowledgements
 
-By default, the output newsletter will be **created as an HTML file** in the installation directory of your package, saved in the folder `rendered` under the filename `newsletter_YYYY-MM-DD.html`, where the date is the respective date the NewsCollector scraped its articles from. 
+This project is based on the NewsCollector package by elisemercury. Special thanks to elisemercury for creating a cool project that served as the foundation for this retriever.
 
-To adjust the default settings, please refer to [Additional Parameters](https://github.com/elisemercury/NewsCollector#additional-parameters).
+For more information about how the NewsCollector algorithm works, please refer to the following resources:
 
-## Additional Parameters
+    NewsCollector Usage Documentation
+    Medium article by elisemercury
 
-You can customize the NewsCollector algorithm with the following optional parameters:
+License
 
-```Python
-newsletter = NewsCollector(sources="sources.json", news_name="Daily News Update", 
-                           news_date=date.today(), template='newsletter.html', 
-                           output_filename='default', auto_open=False, 
-                           return_details=False)
-```
+This project is licensed under the MIT License.
 
-> :bulb: For a **detailed usage guide**, please refer to the official [NewsCollector Usage Documentation](https://github.com/elisemercury/News-Collector/wiki/NewsCollector-Usage-Documentation).
 
--------
 
-<p align="center"><b>
-:heart: Open Source 
-</b></p>
+
+
+
