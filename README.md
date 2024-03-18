@@ -1,6 +1,6 @@
 # NewsCollector Retriever
 
-This project is an adaptation of the **NewsCollector** package by elisemercury. It has been modified to run as a cron job on a daily basis to collect news articles and save them as JSON files. The collected data is intended to be used by other programs for automating the creation of datasets and running graph visualizations.
+This project is an adaptation of the **NewsCollector** package by elisemercury. It has been modified to run as a cron job and save them as JSON files.
 
 ## Features
 
@@ -14,7 +14,7 @@ This project is an adaptation of the **NewsCollector** package by elisemercury. 
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/yourusername/NewsCollectorRetriever.git
+   git clone https://github.com/yourusername/NewsCollector.git
    ```
 
 2. Install the required dependencies:
