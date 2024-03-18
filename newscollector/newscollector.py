@@ -166,6 +166,8 @@ class Scraper:
         except Exception as e:
             raise Exception(f'Error in "Scraper.scrape()": {e}')
 
+
+
     def save_article_as_json(self, article, directory):
         # Ensure the article has a unique identifier ('id') as its first property
         article_id = self.generate_uuid_for_article(article['url'])
@@ -524,5 +526,3 @@ if __name__ == "__main__":
 
     newsletter = NewsCollector(sources, news_name, news_date, template, output_filename, return_details, auto_open)
     newsletter.create()
-
-
