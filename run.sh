@@ -42,13 +42,13 @@ if ls *.json >/dev/null 2>&1; then
     python3 archive.py
     echo "archive.py executed."
   fi
-  cd ../..
+  cd ../
   echo "Moved back to the parent directory."
   echo "Current directory: $(pwd)"
 else
   echo "No JSON files found in the 'articles' directory."
   echo "Skipping duplicate removal and archiving steps."
-  cd ../..
+  cd ../
   echo "Moved back to the parent directory."
   echo "Current directory: $(pwd)"
 fi

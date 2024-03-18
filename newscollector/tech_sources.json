@@ -1,65 +1,99 @@
 {
   "TechCrunch": {
-    "rss": ["https://rss.app/feeds/tENMeQJanXtbVKgq.xml"]
+    "rss": [
+      "https://techcrunch.com/feed/",
+      "https://techcrunch.com/category/artificial-intelligence/feed"
+    ]
   },
   "TheVerge": {
-    "rss": ["https://rss.app/feeds/tr5hpXSURROzMSve.xml"]
+    "rss": [
+      "https://www.theverge.com/rss/cryptocurrency/index.xml",
+      "https://www.theverge.com/policy/rss/index.xml",
+      "https://www.theverge.com/rss/youtube/index.xml",
+      "https://www.theverge.com/rss/science/index.xml",
+      "https://www.theverge.com/rss/climate-change/index.xml"
+    ]
   },
   "Wired": {
-    "rss": ["https://rss.app/feeds/tdMQESipFNRj1mYa.xml"]
+    "rss": [
+      "https://www.wired.com/feed"
+    ]
   },
   "ArsTechnica": {
-    "rss": ["https://rss.app/feeds/tABINQTfZUBBknRc.xml"]
+    "rss": [
+      "https://feeds.arstechnica.com/arstechnica/index"
+    ]
   },
   "Engadget": {
-    "rss": [""]
+    "rss": [
+      "https://www.engadget.com/rss.xml"
+    ]
   },
   "Robot News": {
-    "rss": ["https://rss.app/feeds/tWmHHz7wu2GjdWCZ.xml"]
+    "rss": [
+      "https://www.therobotreport.com/feed"
+    ]
   },
   "Venturebeat": {
-    "rss": ["https://rss.app/feeds/t4KWuT13b7qIC7DK.xml"]
+    "rss": [
+      "https://venturebeat.com/feed/"
+    ]
   },
   "MITTechReview": {
-    "rss": ["https://rss.app/feeds/tGp2CJvgjqAm2RXu.xml"]
+    "rss": [
+      "https://www.technologyreview.com/feed"
+    ]
   },
   "ForbesTech": {
-    "rss": ["https://rss.app/feeds/tZ25GCfCqWaXpgNw.xml"]
+    "rss": [
+      "https://www.forbes.com/innovation/feed"
+    ]
   },
-  "AINewsFeed": {
-    "rss": ["https://rss.app/feeds/tUrbiS5GhQbEc7eW.xml"]
+  "Medium_TowardsDataScience": {
+    "rss": [
+      "https://towardsdatascience.com/feed"
+    ]
   },
   "Geekwire": {
-    "rss": ["https://rss.app/feeds/tzk6n7k9kE3JLTCY.xml"]
+    "rss": [
+      "https://www.geekwire.com/rss-feeds/"
+    ]
   },
   "SciTechDaily": {
-    "rss": ["https://rss.app/feeds/tvCuPwi7urXWprQS.xml"]
+    "rss": [
+      "https://scitechdaily.com/feed/"
+    ]
   },
   "ReutersTechnology": {
-    "rss": ["https://rss.app/feeds/tJszXfGPNJvc2QKq.xml"]
+    "rss": [
+      "https://www.reutersagency.com/feed/"
+    ]
   },
   "HackerNews": {
-    "rss": ["https://rss.app/feeds/tiobV8TGEFR4SRaL.xml"]
+    "rss": [
+      "https://hnrss.org/newest",
+      "https://hnrss.org/frontpage",
+      "https://hnrss.org/bestcomments"
+    ]
   },
   "BBCTech": {
-    "rss": ["https://rss.app/feeds/ttTGZINHuOb96ffL.xml"]
+    "rss": [
+      "https://feeds.bbci.co.uk/news/technology/rss.xml"
+    ]
   },
-  "Gadgets360": {
-    "rss": ["https://rss.app/feeds/twrfd0Io1dnl8aGP.xml"]
+  "OneUsefulThing": {
+    "rss": [
+      "https://www.oneusefulthing.org/feed"
+    ]
   },
-  "Science": {
-    "rss": ["https://rss.app/feeds/tAId43Zjt7J9d9wr.xml"]
+  "DataMachina": {
+    "rss": [
+      "https://datamachina.substack.com/feed"
+    ]
   },
-  "MediumAI": {
-    "rss": ["https://rss.app/feeds/tUnuzSJXLu8qKttQ.xml"]
-  },
-  "AIAGI": {
-    "rss": ["https://rss.app/feeds/tOerG77scg1Vxc2w.xml"]
-  },
-  "Gizmodo": {
-    "rss": ["https://rss.app/feeds/tUgXcqFrXYCisrX6.xml"]
-  },
-  "ML": {
-    "rss": ["https://rss.app/feeds/t8KBbTmtz6UH2fiY.xml"]
+  "LastWeekinAI": {
+    "rss": [
+      "https://lastweekin.ai/feed"
+    ]
   }
 }
