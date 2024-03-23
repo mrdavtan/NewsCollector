@@ -24,11 +24,6 @@
       "https://feeds.arstechnica.com/arstechnica/index"
     ]
   },
-  "Engadget": {
-    "rss": [
-      "https://www.engadget.com/rss.xml"
-    ]
-  },
   "Robot News": {
     "rss": [
       "https://www.therobotreport.com/feed"
@@ -52,11 +47,6 @@
   "Medium_TowardsDataScience": {
     "rss": [
       "https://towardsdatascience.com/feed"
-    ]
-  },
-  "Geekwire": {
-    "rss": [
-      "https://www.geekwire.com/rss-feeds/"
     ]
   },
   "SciTechDaily": {
