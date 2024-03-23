@@ -24,6 +24,7 @@ def process_json_files(folder_path):
                     source = json_data.get("source", "")
                     url = json_data.get("url", "")
                     published_date = json_data.get("date", "")
+                    has_content_or_description = "content" in json_data or "description" in json_data
 
                     # Sanitize the title
                     sanitized_title = sanitize_title(title)
@@ -34,7 +35,8 @@ def process_json_files(folder_path):
                         "title": sanitized_title,
                         "source": source,
                         "url": url,
-                        "published_date": published_date
+                        "published_date": published_date,
+                        "has_content_or_description": has_content_or_description
                     })
                 except (json.JSONDecodeError, KeyError):
                     logging.error(f"Error processing file: {filename}")
@@ -67,6 +69,8 @@ def process_json_files(folder_path):
 
     logging.info(f"Output file created: {output_filename}")
 
+    return data
+
 # Set up logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
@@ -76,4 +80,4 @@ parser.add_argument("folder_path", help="Path to the folder containing JSON file
 args = parser.parse_args()
 
 # Process the JSON files and create the output file
-process_json_files(args.folder_path)
+title_data = process_json_files(args.folder_path)
